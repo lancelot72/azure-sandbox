@@ -1,0 +1,11 @@
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+  
+  vars:
+    resource_group: "projet-rg-sandbox"
+    aks_name: "aks-sandbox"
+    kubeconfig_src_path: "/mnt/c/Users/pc/.kube/"
+    kubeconfig_dest_path: "~/.kube/"
+    namespace: "sandbox"

@@ -1,0 +1,7 @@
+- name: Déploiement d'applications sur AKS
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  roles:
+    - deploy_nginx

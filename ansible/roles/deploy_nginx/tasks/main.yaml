@@ -1,0 +1,39 @@
+---
+- name: Obtenir les identifiants du cluster AKS
+  ansible.builtin.shell: >
+    az aks get-credentials
+    --resource-group {{ resource_group }}
+    --name {{ aks_name }}
+    --overwrite-existing
+  register: get_creds
+  changed_when: "'Merged' in get_creds.stdout"
+  failed_when: get_creds.rc != 0
+
+- name: Copier le dossier .kube depuis Windows vers WSL
+  ansible.builtin.copy:
+    src: "{{ kubeconfig_src_path }}"
+    dest: "{{ kubeconfig_dest_path }}"
+    remote_src: yes
+    mode: preserve
+
+- name: Créer le namespace dans AKS
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_dest_path }}/config"
+    api_version: v1
+    kind: Namespace
+    name: "{{ namespace }}"
+    state: present
+
+- name: Déployer nginx dans le namespace 'sandbox'
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_dest_path }}/config"
+    state: present
+    namespace: "{{ namespace }}"
+    src: "{{ role_path }}/files/nginx-deploy.yaml"
+
+- name: Déployer le Service LoadBalancer pour nginx
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_dest_path }}/config"
+    state: present
+    namespace: "{{ namespace }}"
+    src: "{{ role_path }}/files/nginx-service.yaml"
